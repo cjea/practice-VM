@@ -89,9 +89,7 @@ func (p *Processor) Process(memory *Memory) {
 
 // LoadWord loads value at given address from memory into register
 func LoadWord(r *Register, addr Address, mem *Memory) {
-	littleEnd := uint16(mem[addr])
-	bigEnd := uint16(mem[addr+1]) * 256
-	r.val = littleEnd + bigEnd
+	r.val = uint16(LittleEndianDecode(mem, addr))
 }
 
 // StoreWord stores the value from register to the given address
@@ -113,9 +111,7 @@ func Sub(r1, r2 *Register) {
 
 // PrintStdOut prints the output from memory (addr 0x0e and 0x0f)
 func PrintStdOut(m Memory) {
-	littleEnd := uint16(m[0x0e])
-	bigEnd := uint16(m[0x0f]) * 256
-	fmt.Println("Out: ", littleEnd+bigEnd)
+	fmt.Println("Out: ", LittleEndianDecode(&m, Address(0x0e)))
 }
 
 // LittleEndianEncode returns 2 bytes in little endian
@@ -123,6 +119,13 @@ func LittleEndianEncode(n int) (int, int) {
 	bigEnd := n / 256
 	littleEnd := n % 256
 	return littleEnd, bigEnd
+}
+
+// LittleEndianDecode returns 2 bytes in little endian
+func LittleEndianDecode(mem *Memory, addr Address) (ret int) {
+	littleEnd := uint16(mem[addr])
+	bigEnd := uint16(mem[addr+1]) * 256
+	return int(littleEnd + bigEnd)
 }
 
 // ValidRegister returns true if the input points to a valid register.
