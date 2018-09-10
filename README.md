@@ -7,7 +7,7 @@ go build main.go
 ./main
 ```
 
-Main function can pass a 20-byte RAM (represented with an array) and the CPU will parse against the following ISA:
+Main function can pass 20-bytes of RAM (represented with an array) and the CPU will parse against the following ISA:
 
 ```
 0x01 LOAD
