@@ -10,7 +10,6 @@ func Run() {
 	for _, disc := range discs {
 		processor.Process(disc)
 	}
-	discs[len(discs)-1].Flush()
 }
 
 func getDiscs() []*cpu.Memory {
@@ -40,7 +39,7 @@ func getDiscs() []*cpu.Memory {
 	}
 	flusher := &cpu.Memory{
 		0x02, 0x01, 0x0e, // STORE R1 0x0e
-
+		0x05, // PRINT TO STDOUT
 		0xff, // HALT
 	}
 	return []*cpu.Memory{

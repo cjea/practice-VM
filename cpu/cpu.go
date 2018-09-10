@@ -9,13 +9,6 @@ import (
 // 14 bytes for instruction, 2 bytes for output, 2x2 bytes for input
 type Memory [20]uint8
 
-// Println prints the output from memory
-func (m *Memory) Flush() {
-	littleEnd := uint16(m[0x0e])
-	bigEnd := uint16(m[0x0f]) * 256
-	fmt.Println("Out: ", littleEnd+bigEnd)
-}
-
 // Address will be an index in the Memory array
 type Address uint8
 
@@ -42,6 +35,7 @@ func New() *Processor {
 			0x02: StoreWord,
 			0x03: Add,
 			0x04: Sub,
+			0x05: PrintStdOut,
 			0xff: "HALT",
 		},
 		instrEnd: 0x0d,
@@ -56,9 +50,9 @@ func New() *Processor {
 // Process performs the fetch-decode-execute loop on a 20 byte "RAM" array
 func (p *Processor) Process(memory *Memory) {
 	currentInstr := p.registers[0x00].val
-	jump := uint16(3)
 	complete := false
 	for int(currentInstr) <= p.instrEnd && !complete {
+		jump := uint16(3) // 1 byte for opcode, and 1 byte for each "param"
 		instruction := memory[currentInstr]
 		_, ok := p.isa[instruction]
 		if !ok {
@@ -83,6 +77,9 @@ func (p *Processor) Process(memory *Memory) {
 			r1 := p.registers[memory[currentInstr+1]]
 			r2 := p.registers[memory[currentInstr+2]]
 			Sub(r1, r2)
+		case 0x05:
+			PrintStdOut(*memory)
+			jump = 1
 		}
 		p.registers[0x00].val += jump
 		currentInstr = p.registers[0x00].val
@@ -112,6 +109,13 @@ func Add(r1, r2 *Register) {
 // Sub sets r1 = r1 - r2
 func Sub(r1, r2 *Register) {
 	r1.val = r1.val - r2.val
+}
+
+// PrintStdOut prints the output from memory (addr 0x0e and 0x0f)
+func PrintStdOut(m Memory) {
+	littleEnd := uint16(m[0x0e])
+	bigEnd := uint16(m[0x0f]) * 256
+	fmt.Println("Out: ", littleEnd+bigEnd)
 }
 
 // LittleEndianEncode returns 2 bytes in little endian
